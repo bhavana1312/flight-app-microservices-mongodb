@@ -11,22 +11,22 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class FlightSearchRequest {
-    @NotBlank
-    private String fromPlace;
+	@NotBlank
+	private String fromPlace;
 
-    @NotBlank
-    private String toPlace;
+	@NotBlank
+	private String toPlace;
 
-    @NotNull
-    private LocalDateTime startDateTime; 
+	@NotNull
+	private LocalDateTime startDateTime;
 
-    @NotNull
-    private LocalDateTime endDateTime; 
+	@NotNull
+	private LocalDateTime endDateTime;
 
-    private boolean roundTrip; 
-    private LocalDateTime returnStartDateTime; 
-    private LocalDateTime returnEndDateTime; 
+	private Boolean roundTrip;
+	private LocalDateTime returnStartDateTime;
+	private LocalDateTime returnEndDateTime;
 
-    private Integer seatsRequired; 
-    private String seatType; 
+	private Integer seatsRequired;
+	private String seatType;
 }

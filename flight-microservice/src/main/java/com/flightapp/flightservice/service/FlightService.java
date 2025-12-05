@@ -22,6 +22,14 @@ public class FlightService {
 	private final FlightRepository flightRepository;
 
 	public String addInventory(FlightInventoryRequest request) {
+		Optional<Flight> existing = flightRepository
+				.findByAirlineNameRegexAndFromPlaceRegexAndToPlaceRegexAndDepartureDateTime(
+						"^" + request.getAirlineName() + "$", "^" + request.getFromPlace() + "$",
+						"^" + request.getToPlace() + "$", request.getDepartureDateTime());
+
+		if (existing.isPresent()) {
+			throw new BadRequestException("Flight already exists for this airline, route, and departure time");
+		}
 		if (request.getDepartureDateTime().isAfter(request.getArrivalDateTime())) {
 			throw new BadRequestException("Arrival must be after departure");
 		}
@@ -36,7 +44,7 @@ public class FlightService {
 			if (s.getPrice() < 0)
 				throw new BadRequestException("Seat price cannot be negative");
 			if (s.getSeatType() == null)
-				s.setSeatType(SeatType.ECONOMY); 
+				s.setSeatType(SeatType.ECONOMY);
 		}
 		Flight flight = Flight.builder().airlineName(request.getAirlineName())
 				.airlineLogoUrl(request.getAirlineLogoUrl()).fromPlace(request.getFromPlace())
@@ -44,7 +52,7 @@ public class FlightService {
 				.arrivalDateTime(request.getArrivalDateTime()).seats(request.getSeats()).build();
 
 		Flight saved = flightRepository.save(flight);
-		return saved.getId(); 
+		return saved.getId();
 	}
 
 	public List<FlightSearchResponse> searchFlights(FlightSearchRequest req) {
@@ -71,7 +79,6 @@ public class FlightService {
 		}).collect(Collectors.toList());
 	}
 
-	// Additional helper used by booking service later
 	public Optional<Flight> getFlightById(String id) {
 		return flightRepository.findById(id);
 	}
