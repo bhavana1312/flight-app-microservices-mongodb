@@ -11,7 +11,8 @@ import com.flightapp.flightservice.repository.FlightRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -22,6 +23,7 @@ public class FlightService {
 	private final FlightRepository flightRepository;
 
 	public String addInventory(FlightInventoryRequest request) {
+
 		Optional<Flight> existing = flightRepository
 				.findByAirlineNameRegexAndFromPlaceRegexAndToPlaceRegexAndDepartureDateTime(
 						"^" + request.getAirlineName() + "$", "^" + request.getFromPlace() + "$",
@@ -30,53 +32,52 @@ public class FlightService {
 		if (existing.isPresent()) {
 			throw new BadRequestException("Flight already exists for this airline, route, and departure time");
 		}
+
 		if (request.getDepartureDateTime().isAfter(request.getArrivalDateTime())) {
 			throw new BadRequestException("Arrival must be after departure");
 		}
-		if (request.getSeats() == null || request.getSeats().isEmpty()) {
-			throw new BadRequestException("Seats must be provided");
+
+		List<Seat> seats = new ArrayList<>();
+		for (int i = 1; i <= request.getBusinessSeats(); i++) {
+			seats.add(new Seat("B" + i, SeatType.BUSINESS, false, request.getBusinessSeatPrice()));
 		}
-		Set<String> seatNums = new HashSet<>();
-		for (Seat s : request.getSeats()) {
-			if (!seatNums.add(s.getSeatNumber())) {
-				throw new BadRequestException("Duplicate seat number: " + s.getSeatNumber());
-			}
-			if (s.getPrice() < 0)
-				throw new BadRequestException("Seat price cannot be negative");
-			if (s.getSeatType() == null)
-				s.setSeatType(SeatType.ECONOMY);
+		for (int i = 1; i <= request.getEconomySeats(); i++) {
+			seats.add(new Seat("E" + i, SeatType.ECONOMY, false, request.getEconomySeatPrice()));
 		}
 		Flight flight = Flight.builder().airlineName(request.getAirlineName())
 				.airlineLogoUrl(request.getAirlineLogoUrl()).fromPlace(request.getFromPlace())
 				.toPlace(request.getToPlace()).departureDateTime(request.getDepartureDateTime())
-				.arrivalDateTime(request.getArrivalDateTime()).seats(request.getSeats()).build();
+				.arrivalDateTime(request.getArrivalDateTime()).seats(seats).build();
 
 		Flight saved = flightRepository.save(flight);
 		return saved.getId();
 	}
 
 	public List<FlightSearchResponse> searchFlights(FlightSearchRequest req) {
+
+		LocalDate date = req.getJourneyDate();
+		if (date == null) {
+			throw new BadRequestException("Journey date is required");
+		}
+
+		LocalDateTime start = date.atStartOfDay();
+		LocalDateTime end = date.atTime(23, 59, 59);
+
 		List<Flight> flights = flightRepository
 				.findByFromPlaceIgnoreCaseAndToPlaceIgnoreCaseAndDepartureDateTimeBetween(req.getFromPlace(),
-						req.getToPlace(), req.getStartDateTime(), req.getEndDateTime());
+						req.getToPlace(), start, end);
 
-		return flights.stream().map(f -> {
-			int availableSeats = (int) f.getSeats().stream().filter(s -> !s.isReserved()).count();
-			double lowestPrice = f.getSeats().stream().filter(s -> !s.isReserved()).filter(s -> {
-				if (req.getSeatType() == null)
-					return true;
-				try {
-					return s.getSeatType() == SeatType.valueOf(req.getSeatType());
-				} catch (Exception e) {
-					return true;
-				}
-			}).mapToDouble(Seat::getPrice).min().orElse(Double.NaN);
-
-			return FlightSearchResponse.builder().flightId(f.getId()).airlineName(f.getAirlineName())
-					.airlineLogoUrl(f.getAirlineLogoUrl()).departureDateTime(f.getDepartureDateTime())
-					.arrivalDateTime(f.getArrivalDateTime()).fromPlace(f.getFromPlace()).toPlace(f.getToPlace())
-					.availableSeats(availableSeats).lowestPrice(Double.isNaN(lowestPrice) ? 0.0 : lowestPrice).build();
-		}).collect(Collectors.toList());
+		return flights
+				.stream().map(
+						f -> FlightSearchResponse.builder().flightId(f.getId()).airlineName(f.getAirlineName())
+								.airlineLogoUrl(f.getAirlineLogoUrl()).departureDateTime(f.getDepartureDateTime())
+								.arrivalDateTime(f.getArrivalDateTime()).fromPlace(f.getFromPlace())
+								.toPlace(f.getToPlace())
+								.availableSeats((int) f.getSeats().stream().filter(s -> !s.isReserved()).count())
+								.lowestPrice(f.getSeats().stream().filter(s -> !s.isReserved())
+										.mapToDouble(Seat::getPrice).min().orElse(0))
+								.build())
+				.collect(Collectors.toList());
 	}
 
 	public Optional<Flight> getFlightById(String id) {

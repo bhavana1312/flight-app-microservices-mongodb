@@ -5,6 +5,8 @@ import com.flightapp.flightservice.dto.FlightSearchRequest;
 import com.flightapp.flightservice.dto.FlightSearchResponse;
 import com.flightapp.flightservice.service.FlightService;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +26,7 @@ public class FlightController {
 	@PostMapping("/airline/inventory/add")
 	public ResponseEntity<Map<String, String>> addInventory(@Valid @RequestBody FlightInventoryRequest request) {
 		String id = flightService.addInventory(request);
-		return ResponseEntity.ok(Map.of("id", id));
+		return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("id", id));
 	}
 
 	@PostMapping("/search")

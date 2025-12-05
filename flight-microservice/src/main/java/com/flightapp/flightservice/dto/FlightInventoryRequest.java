@@ -12,23 +12,37 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class FlightInventoryRequest {
-	@NotBlank
+
+	@NotBlank(message = "Airline name is required")
 	private String airlineName;
+
+	@NotBlank(message = "Airline logo URL is required")
 	private String airlineLogoUrl;
 
-	@NotBlank
+	@NotBlank(message = "From place is required")
 	private String fromPlace;
 
-	@NotBlank
+	@NotBlank(message = "To place is required")
 	private String toPlace;
 
-	@NotNull
+	@NotNull(message = "Departure time is required")
 	private LocalDateTime departureDateTime;
 
-	@NotNull
+	@NotNull(message = "Arrival time is required")
 	private LocalDateTime arrivalDateTime;
 
-	@NotEmpty
-	private List<Seat> seats;
+	@NotBlank(message = "Aircraft model is required")
+	private String aircraftModel;
 
+	@Min(value = 0, message = "Business seat count must be 0 or more")
+	private int businessSeats;
+
+	@Min(value = 0, message = "Economy seat count must be 0 or more")
+	private int economySeats;
+
+	@PositiveOrZero(message = "Business seat price must be >= 0")
+	private double businessSeatPrice;
+
+	@PositiveOrZero(message = "Economy seat price must be >= 0")
+	private double economySeatPrice;
 }
