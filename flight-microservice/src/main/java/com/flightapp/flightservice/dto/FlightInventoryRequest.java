@@ -1,25 +1,19 @@
-package com.flightapp.flightservice.model;
+package com.flightapp.flightservice.dto;
 
+import com.flightapp.flightservice.model.Seat;
 import lombok.*;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.validation.constraints.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Document(collection = "flights")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Flight {
-	@Id
-	private String id;
-
+public class FlightInventoryRequest {
 	@NotBlank
 	private String airlineName;
-
 	private String airlineLogoUrl;
 
 	@NotBlank
