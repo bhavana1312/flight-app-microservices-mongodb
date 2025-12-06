@@ -14,23 +14,25 @@ import java.util.List;
 @Builder
 public class Booking {
 
-    @Id
-    private String id; 
+	@Id
+	private String id;
 
-    private String flightId;
+	private String flightId;
 
-    private String userName;
-    private String userEmail;
+	private String userName;
+	private String userEmail;
 
-    private int numberOfSeats;
+	private int numberOfSeats;
 
-    private List<Passenger> passengers;
+	private List<Passenger> passengers;
 
-    private List<String> selectedSeats;
+	private List<String> selectedSeats;
 
-    private String mealPreference; 
+	private String mealPreference;
 
-    private LocalDateTime bookingTime;
+	private LocalDateTime bookingTime;
 
-    private LocalDateTime journeyDate; 
+	private LocalDateTime journeyDate;
+
+	private String bookingStatus;
 }

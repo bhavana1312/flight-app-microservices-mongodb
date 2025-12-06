@@ -56,7 +56,7 @@ public class BookingService {
 				.userEmail(request.getUserEmail()).numberOfSeats(request.getNumberOfSeats())
 				.passengers(request.getPassengers()).selectedSeats(request.getSelectedSeats())
 				.mealPreference(request.getMealPreference()).bookingTime(LocalDateTime.now())
-				.journeyDate(flight.getDepartureDateTime()).build();
+				.journeyDate(flight.getDepartureDateTime()).bookingStatus("ACTIVE").build();
 
 		bookingRepository.save(booking);
 
@@ -81,20 +81,25 @@ public class BookingService {
 		Booking booking = bookingRepository.findById(pnr)
 				.orElseThrow(() -> new ResourceNotFoundException("No ticket found for PNR: " + pnr));
 
-		LocalDateTime now = LocalDateTime.now();
-		LocalDateTime journeyDateTime = booking.getJourneyDate();
+		if ("CANCELLED".equalsIgnoreCase(booking.getBookingStatus())) {
+			throw new BadRequestException("Ticket is already cancelled.");
+		}
 
-		if (journeyDateTime.minusHours(24).isBefore(now)) {
-			throw new BadRequestException("Ticket cannot be cancelled within 24 hours of journey.");
+		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime journeyTime = booking.getJourneyDate();
+
+		if (journeyTime.minusHours(24).isBefore(now)) {
+			throw new BadRequestException("Cannot cancel within 24 hours of journey.");
 		}
 
 		Flight flight = flightClient.getFlightById(booking.getFlightId());
-		if (flight == null)
-			throw new BadRequestException("Flight not found for cancellation");
+		if (flight == null) {
+			throw new BadRequestException("Flight not found for cancellation.");
+		}
 
-		for (String seatNumber : booking.getSelectedSeats()) {
+		for (String seatNum : booking.getSelectedSeats()) {
 			flight.getSeats().forEach(seat -> {
-				if (seat.getSeatNumber().equals(seatNumber)) {
+				if (seat.getSeatNumber().equals(seatNum)) {
 					seat.setReserved(false);
 				}
 			});
@@ -102,7 +107,8 @@ public class BookingService {
 
 		flightClient.updateSeats(flight.getId(), flight);
 
-		bookingRepository.deleteById(pnr);
+		booking.setBookingStatus("CANCELLED");
+		bookingRepository.save(booking);
 
 		return "Ticket cancelled successfully";
 	}
