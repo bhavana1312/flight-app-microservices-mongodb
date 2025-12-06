@@ -2,6 +2,7 @@ package com.flightapp.bookingservice.service;
 
 import com.flightapp.bookingservice.dto.BookingRequest;
 import com.flightapp.bookingservice.exception.BadRequestException;
+import com.flightapp.bookingservice.exception.ResourceNotFoundException;
 import com.flightapp.bookingservice.feign.FlightClient;
 import com.flightapp.bookingservice.feign.dto.Flight;
 import com.flightapp.bookingservice.feign.dto.Seat;
@@ -61,4 +62,49 @@ public class BookingService {
 
 		return pnr;
 	}
+
+	public Booking getBookingByPnr(String pnr) {
+		return bookingRepository.findById(pnr)
+				.orElseThrow(() -> new ResourceNotFoundException("No ticket found for PNR: " + pnr));
+	}
+
+	public List<Booking> getHistoryByEmail(String email) {
+		List<Booking> bookings = bookingRepository.findByUserEmailIgnoreCase(email);
+		if (bookings.isEmpty())
+			throw new ResourceNotFoundException("No bookings found for email: " + email);
+
+		return bookings;
+	}
+
+	public String cancelBooking(String pnr) {
+
+		Booking booking = bookingRepository.findById(pnr)
+				.orElseThrow(() -> new ResourceNotFoundException("No ticket found for PNR: " + pnr));
+
+		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime journeyDateTime = booking.getJourneyDate();
+
+		if (journeyDateTime.minusHours(24).isBefore(now)) {
+			throw new BadRequestException("Ticket cannot be cancelled within 24 hours of journey.");
+		}
+
+		Flight flight = flightClient.getFlightById(booking.getFlightId());
+		if (flight == null)
+			throw new BadRequestException("Flight not found for cancellation");
+
+		for (String seatNumber : booking.getSelectedSeats()) {
+			flight.getSeats().forEach(seat -> {
+				if (seat.getSeatNumber().equals(seatNumber)) {
+					seat.setReserved(false);
+				}
+			});
+		}
+
+		flightClient.updateSeats(flight.getId(), flight);
+
+		bookingRepository.deleteById(pnr);
+
+		return "Ticket cancelled successfully";
+	}
+
 }
