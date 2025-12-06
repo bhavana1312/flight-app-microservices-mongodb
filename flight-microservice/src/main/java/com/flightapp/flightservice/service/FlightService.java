@@ -4,6 +4,7 @@ import com.flightapp.flightservice.dto.FlightInventoryRequest;
 import com.flightapp.flightservice.dto.FlightSearchRequest;
 import com.flightapp.flightservice.dto.FlightSearchResponse;
 import com.flightapp.flightservice.exception.BadRequestException;
+import com.flightapp.flightservice.exception.ResourceNotFoundException;
 import com.flightapp.flightservice.model.Flight;
 import com.flightapp.flightservice.model.Seat;
 import com.flightapp.flightservice.model.SeatType;
@@ -78,6 +79,16 @@ public class FlightService {
 										.mapToDouble(Seat::getPrice).min().orElse(0))
 								.build())
 				.collect(Collectors.toList());
+	}
+
+	public void updateSeats(String id, Flight updatedFlight) {
+
+		Flight existing = flightRepository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("Flight not found with ID: " + id));
+
+		existing.setSeats(updatedFlight.getSeats());
+
+		flightRepository.save(existing);
 	}
 
 	public Optional<Flight> getFlightById(String id) {
