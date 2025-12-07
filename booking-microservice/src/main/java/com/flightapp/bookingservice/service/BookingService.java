@@ -10,6 +10,7 @@ import com.flightapp.bookingservice.feign.dto.Seat;
 import com.flightapp.bookingservice.model.Booking;
 import com.flightapp.bookingservice.repository.BookingRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -22,10 +23,21 @@ public class BookingService {
 	private final BookingRepository bookingRepository;
 	private final FlightClient flightClient;
 	private final NotificationProducer notificationProducer;
+	private final CircuitBreakerFactory circuitBreakerFactory;
+
+	private Flight getFlightSafe(String flightId) {
+		return circuitBreakerFactory.create("flightServiceBreaker").run(() -> flightClient.getFlightById(flightId),
+				throwable -> fallbackFlight(flightId));
+	}
+
+	private Flight fallbackFlight(String flightId) {
+		System.out.println("⚠️ Circuit Breaker Fallback Triggered! Flight Service DOWN for flightId: " + flightId);
+		return null;
+	}
 
 	public String bookTicket(String flightId, BookingRequest request) {
 
-		Flight flight = flightClient.getFlightById(flightId);
+		Flight flight = getFlightSafe(flightId);
 		if (flight == null)
 			throw new BadRequestException("Flight not found");
 
@@ -36,7 +48,6 @@ public class BookingService {
 			throw new BadRequestException("Selected seats mismatch");
 
 		for (String seatNum : request.getSelectedSeats()) {
-
 			Seat seat = flight.getSeats().stream().filter(s -> s.getSeatNumber().equals(seatNum)).findFirst()
 					.orElseThrow(() -> new BadRequestException("Seat not found: " + seatNum));
 
@@ -98,7 +109,7 @@ public class BookingService {
 			throw new BadRequestException("Cannot cancel within 24 hours of journey.");
 		}
 
-		Flight flight = flightClient.getFlightById(booking.getFlightId());
+		Flight flight = getFlightSafe(booking.getFlightId());
 		if (flight == null) {
 			throw new BadRequestException("Flight not found for cancellation.");
 		}
@@ -122,5 +133,4 @@ public class BookingService {
 
 		return "Ticket cancelled successfully";
 	}
-
 }
