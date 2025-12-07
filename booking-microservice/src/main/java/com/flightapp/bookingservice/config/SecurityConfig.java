@@ -1,6 +1,6 @@
-package com.flightapp.flightservice.config;
+package com.flightapp.bookingservice.config;
 
-import com.flightapp.flightservice.security.JwtAuthFilter;
+import com.flightapp.bookingservice.security.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,11 +22,13 @@ public class SecurityConfig {
 
 		http.csrf(csrf -> csrf.disable())
 				.sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.authorizeHttpRequests(auth -> auth
 
-						.requestMatchers("/search/**", "/flight/search/**", "/update-seats/**").permitAll()
-						.requestMatchers("/flight/**").permitAll().requestMatchers("/airline/inventory/add")
-						.hasRole("ADMIN").anyRequest().authenticated());
+				.authorizeHttpRequests(auth -> auth.requestMatchers("/actuator/**").permitAll()
+
+						.requestMatchers("/booking/**", "/booking/ticket/**", "/booking/history/**")
+						.hasAnyRole("USER", "ADMIN")
+
+						.anyRequest().authenticated());
 
 		http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
