@@ -1,6 +1,7 @@
 package com.flightapp.bookingservice.service;
 
 import com.flightapp.bookingservice.dto.BookingRequest;
+import com.flightapp.bookingservice.dto.NotificationMessage;
 import com.flightapp.bookingservice.exception.BadRequestException;
 import com.flightapp.bookingservice.exception.ResourceNotFoundException;
 import com.flightapp.bookingservice.feign.FlightClient;
@@ -20,6 +21,7 @@ public class BookingService {
 
 	private final BookingRepository bookingRepository;
 	private final FlightClient flightClient;
+	private final NotificationProducer notificationProducer;
 
 	public String bookTicket(String flightId, BookingRequest request) {
 
@@ -59,6 +61,9 @@ public class BookingService {
 				.journeyDate(flight.getDepartureDateTime()).bookingStatus("ACTIVE").build();
 
 		bookingRepository.save(booking);
+
+		notificationProducer.sendNotification(NotificationMessage.builder().pnr(pnr).email(request.getUserEmail())
+				.userName(request.getUserName()).flightId(flightId).status("BOOKED").build());
 
 		return pnr;
 	}
@@ -109,6 +114,9 @@ public class BookingService {
 
 		booking.setBookingStatus("CANCELLED");
 		bookingRepository.save(booking);
+
+		notificationProducer.sendNotification(NotificationMessage.builder().pnr(pnr).email(booking.getUserEmail())
+				.userName(booking.getUserName()).flightId(booking.getFlightId()).status("CANCELLED").build());
 
 		return "Ticket cancelled successfully";
 	}
