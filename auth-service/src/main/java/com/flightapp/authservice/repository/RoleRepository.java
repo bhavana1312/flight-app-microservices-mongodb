@@ -1,0 +1,12 @@
+package com.flightapp.authservice.repository;
+
+import com.flightapp.authservice.model.ERole;
+import com.flightapp.authservice.model.Role;
+import org.springframework.data.mongodb.repository.MongoRepository;
+
+import java.util.Optional;
+
+public interface RoleRepository extends MongoRepository<Role, String> {
+
+    Optional<Role> findByName(ERole name);
+}
