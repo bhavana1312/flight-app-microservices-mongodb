@@ -1,11 +1,15 @@
 package com.flightapp.flightservice.dto;
 
-import com.flightapp.flightservice.model.Seat;
-import lombok.*;
-
-import javax.validation.constraints.*;
 import java.time.LocalDateTime;
-import java.util.List;
+
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
