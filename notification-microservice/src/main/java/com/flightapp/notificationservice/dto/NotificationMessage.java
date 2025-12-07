@@ -1,5 +1,7 @@
 package com.flightapp.notificationservice.dto;
 
+import java.util.List;
+
 import lombok.*;
 
 @Data
@@ -12,4 +14,5 @@ public class NotificationMessage {
 	private String userName;
 	private String flightId;
 	private String status;
+	private List<String> seats;
 }

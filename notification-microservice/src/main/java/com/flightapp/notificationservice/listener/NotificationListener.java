@@ -9,9 +9,12 @@ public class NotificationListener {
 
 	@RabbitListener(queues = "booking.queue")
 	public void handleNotification(NotificationMessage message) {
-		System.out.println("📩 Received Notification:");
+		System.out.println("\n");
+		System.out.println("Cancellation Notification Received:");
 		System.out.println("PNR: " + message.getPnr());
 		System.out.println("Email: " + message.getEmail());
-		System.out.println("Message: " + message.getStatus());
+		System.out.println("Flight: " + message.getFlightId());
+		System.out.println("Status: " + message.getStatus());
+		System.out.println("Seats: " + message.getSeats());
 	}
 }

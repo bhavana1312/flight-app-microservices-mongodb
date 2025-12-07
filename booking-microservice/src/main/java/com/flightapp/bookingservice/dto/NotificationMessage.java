@@ -1,6 +1,7 @@
 package com.flightapp.bookingservice.dto;
 
 import java.io.Serializable;
+import java.util.List;
 
 import lombok.*;
 
@@ -14,4 +15,5 @@ public class NotificationMessage implements Serializable {
 	private String userName;
 	private String flightId;
 	private String status;
+	 private List<String> seats;
 }

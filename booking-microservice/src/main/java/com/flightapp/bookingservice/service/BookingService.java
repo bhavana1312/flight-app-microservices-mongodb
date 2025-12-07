@@ -62,8 +62,9 @@ public class BookingService {
 
 		bookingRepository.save(booking);
 
-		notificationProducer.sendNotification(NotificationMessage.builder().pnr(pnr).email(request.getUserEmail())
-				.userName(request.getUserName()).flightId(flightId).status("BOOKED").build());
+		notificationProducer.sendNotification(
+				NotificationMessage.builder().pnr(pnr).email(request.getUserEmail()).userName(request.getUserName())
+						.flightId(flightId).status("BOOKED").seats(request.getSelectedSeats()).build());
 
 		return pnr;
 	}
@@ -115,8 +116,9 @@ public class BookingService {
 		booking.setBookingStatus("CANCELLED");
 		bookingRepository.save(booking);
 
-		notificationProducer.sendNotification(NotificationMessage.builder().pnr(pnr).email(booking.getUserEmail())
-				.userName(booking.getUserName()).flightId(booking.getFlightId()).status("CANCELLED").build());
+		notificationProducer.sendNotification(
+				NotificationMessage.builder().pnr(pnr).email(booking.getUserEmail()).userName(booking.getUserName())
+						.flightId(booking.getFlightId()).seats(booking.getSelectedSeats()).status("CANCELLED").build());
 
 		return "Ticket cancelled successfully";
 	}
