@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/flight")
+@RequestMapping("/flight")
 @RequiredArgsConstructor
 @Validated
 public class FlightController {
