@@ -7,7 +7,7 @@ The platform supports **authentication**, **flight search**, **booking**, **tick
 
 ## System Architecture
 
-![system architecture.png]
+![System Architecture](https://github.com/bhavana1312/flight-app-microservices-mongodb/blob/main/system%20architecture.png)
 
 ---
 
@@ -35,7 +35,7 @@ The platform supports **authentication**, **flight search**, **booking**, **tick
 - **MongoDB**, **RabbitMQ**
 - **JWT Security**
 - **Docker Compose**
-- **JUnit + Mockito (95–100% coverage supported)**
+- **JUnit + Mockito (95% coverage)**
 
 ---
 
