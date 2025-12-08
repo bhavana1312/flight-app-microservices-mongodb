@@ -130,6 +130,72 @@
     
     <build>
 		<plugins>
+
+			<!-- Jacoco Plugin -->
+       <plugin>
+    <groupId>org.jacoco</groupId>
+    <artifactId>jacoco-maven-plugin</artifactId>
+    <version>0.8.11</version>
+    <executions>
+
+        <!-- Attach Jacoco Agent -->
+        <execution>
+            <goals>
+                <goal>prepare-agent</goal>
+            </goals>
+        </execution>
+
+        <!-- Generate Report -->
+        <execution>
+            <id>report</id>
+            <phase>test</phase>
+            <goals>
+                <goal>report</goal>
+            </goals>
+            <configuration>
+                <excludes>
+                    <exclude>com/flightapp/flightservice/config/*</exclude>
+    
+                </excludes>
+            </configuration>
+        </execution>
+
+        <!-- Coverage Check -->
+        <execution>
+            <id>check</id>
+            <phase>verify</phase>
+            <goals>
+                <goal>check</goal>
+            </goals>
+            <configuration>
+                <rules>
+                    <rule>
+                        <element>BUNDLE</element>
+                        <limits>
+                            <limit>
+                                <counter>INSTRUCTION</counter>
+                                <value>COVEREDRATIO</value>
+                                <minimum>0.30</minimum> <!-- 30% required -->
+                            </limit>
+                        </limits>
+                    </rule>
+                </rules>
+
+                <!-- EXCLUDE PACKAGES FROM COVERAGE CHECK TOO -->
+                <excludes>
+                    <exclude>com/flightapp/flightservice/config/*</exclude>
+                
+                </excludes>
+
+            </configuration>
+        </execution>
+
+    </executions>
+</plugin>
+
+
+ 
+
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>

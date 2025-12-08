@@ -1,8 +1,11 @@
 package com.flightapp.flightservice.dto;
 
-import lombok.*;
-
 import java.time.LocalDateTime;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor

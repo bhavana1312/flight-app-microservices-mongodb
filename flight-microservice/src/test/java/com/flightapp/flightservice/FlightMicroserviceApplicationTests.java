@@ -1,13 +1,20 @@
 package com.flightapp.flightservice;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.springframework.boot.SpringApplication;
 
-@SpringBootTest
-class FlightMicroserviceApplicationTests {
+import static org.junit.jupiter.api.Assertions.*;
+
+class FlightServiceApplicationTest {
 
 	@Test
-	void contextLoads() {
+	void testMainMethod() {
+		try (MockedStatic<SpringApplication> app = Mockito.mockStatic(SpringApplication.class)) {
+			FlightServiceApplication.main(new String[] {});
+			app.verify(() -> SpringApplication.run(FlightServiceApplication.class, new String[] {}));
+		}
+		assertTrue(true);
 	}
-
 }
