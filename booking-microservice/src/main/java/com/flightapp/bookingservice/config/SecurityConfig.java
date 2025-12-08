@@ -22,16 +22,13 @@ public class SecurityConfig {
 
 		http.csrf(csrf -> csrf.disable())
 				.sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
 				.authorizeHttpRequests(auth -> auth.requestMatchers("/actuator/**").permitAll()
-
 						.requestMatchers("/booking/**", "/booking/ticket/**", "/booking/history/**")
-						.hasAnyRole("USER", "ADMIN")
-
-						.anyRequest().authenticated());
+						.hasAnyRole("USER", "ADMIN").anyRequest().authenticated());
 
 		http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();
 	}
+
 }

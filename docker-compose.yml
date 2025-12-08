@@ -1,3 +1,105 @@
+# version: "3.9"
+
+# services:
+#   mongo:
+#     image: mongo:6
+#     container_name: mongo
+#     ports:
+#       - "27017:27017"
+#     volumes:
+#       - mongo_data:/data/db
+
+#   rabbitmq:
+#     image: rabbitmq:3-management
+#     container_name: rabbitmq
+#     ports:
+#       - "5672:5672"
+#       - "15672:15672"
+
+#   eureka-server:
+#     build: ./service-registry-microservices
+#     container_name: eureka-server
+#     ports:
+#       - "8761:8761"
+#     environment:
+#       - SPRING_PROFILES_ACTIVE=docker
+#     depends_on:
+#       - mongo
+
+#   config-server:
+#     build: ./config-server-microservice
+#     container_name: config-server
+#     ports:
+#       - "8888:8888"
+#     depends_on:
+#       - eureka-server
+
+#   api-gateway:
+#     build: ./api-gateway-microservices
+#     container_name: api-gateway
+#     ports:
+#       - "9090:9090"
+#     environment:
+#       - SPRING_PROFILES_ACTIVE=docker
+#     depends_on:
+#       - config-server
+#       - eureka-server
+
+#   auth-service:
+#     build: ./auth-service
+#     container_name: auth-service
+#     ports:
+#       - "8090:8090"
+#     environment:
+#       - SPRING_PROFILES_ACTIVE=docker
+#     depends_on:
+#       - mongo
+#       - rabbitmq
+#       - config-server
+#       - eureka-server
+
+#   flight-service:
+#     build: ./flight-microservice
+#     container_name: flight-service
+#     ports:
+#       - "8081:8081"
+#     environment:
+#       - SPRING_PROFILES_ACTIVE=docker
+#     depends_on:
+#       - mongo
+#       - config-server
+#       - eureka-server
+
+#   booking-service:
+#     build: ./booking-microservice
+#     container_name: booking-service
+#     ports:
+#       - "8082:8082"
+#     environment:
+#       - SPRING_PROFILES_ACTIVE=docker
+#     depends_on:
+#       - mongo
+#       - rabbitmq
+#       - flight-service
+#       - auth-service
+#       - config-server
+#       - eureka-server
+
+#   notification-service:
+#     build: ./notification-microservice
+#     container_name: notification-service
+#     ports:
+#       - "8083:8083"
+#     environment:
+#       - SPRING_PROFILES_ACTIVE=docker
+#     depends_on:
+#       - rabbitmq
+#       - config-server
+#       - eureka-server
+
+# volumes:
+#   mongo_data:
+
 version: "3.9"
 
 services:
@@ -8,6 +110,11 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -24,7 +131,8 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
 
   config-server:
     build: ./config-server-microservice
@@ -32,18 +140,23 @@ services:
     ports:
       - "8888:8888"
     depends_on:
-      - eureka-server
+      eureka-server:
+        condition: service_started
+      mongo:
+        condition: service_healthy
 
   api-gateway:
     build: ./api-gateway-microservices
     container_name: api-gateway
     ports:
-      - "8080:8080"
+      - "9090:9090"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
-      - config-server
-      - eureka-server
+      config-server:
+        condition: service_started
+      eureka-server:
+        condition: service_started
 
   auth-service:
     build: ./auth-service
@@ -53,10 +166,14 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
-      - mongo
-      - rabbitmq
-      - config-server
-      - eureka-server
+      mongo:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+      config-server:
+        condition: service_started
+      eureka-server:
+        condition: service_started
 
   flight-service:
     build: ./flight-microservice
@@ -66,9 +183,12 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
-      - mongo
-      - config-server
-      - eureka-server
+      mongo:
+        condition: service_healthy
+      config-server:
+        condition: service_started
+      eureka-server:
+        condition: service_started
 
   booking-service:
     build: ./booking-microservice
@@ -78,12 +198,18 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
-      - mongo
-      - rabbitmq
-      - flight-service
-      - auth-service
-      - config-server
-      - eureka-server
+      mongo:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+      flight-service:
+        condition: service_started
+      auth-service:
+        condition: service_started
+      config-server:
+        condition: service_started
+      eureka-server:
+        condition: service_started
 
   notification-service:
     build: ./notification-microservice
@@ -93,9 +219,12 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
-      - rabbitmq
-      - config-server
-      - eureka-server
+      rabbitmq:
+        condition: service_started
+      config-server:
+        condition: service_started
+      eureka-server:
+        condition: service_started
 
 volumes:
   mongo_data:

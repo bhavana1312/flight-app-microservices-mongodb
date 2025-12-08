@@ -4,7 +4,8 @@ import com.flightapp.bookingservice.feign.dto.Flight;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
-@FeignClient(name = "flight-service", url = "http://localhost:8081")
+//@FeignClient(name = "flight-service", url = "http://localhost:8081")
+@FeignClient(name = "flight-microservice")
 public interface FlightClient {
 
 	@GetMapping("/flight/{id}")
