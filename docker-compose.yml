@@ -1,0 +1,101 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:6
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  eureka-server:
+    build: ./eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - mongo
+
+  config-server:
+    build: ./config-server
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    depends_on:
+      - eureka-server
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - config-server
+      - eureka-server
+
+  auth-service:
+    build: ./auth-service
+    container_name: auth-service
+    ports:
+      - "8090:8090"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - mongo
+      - rabbitmq
+      - config-server
+      - eureka-server
+
+  flight-service:
+    build: ./flight-microservice
+    container_name: flight-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - mongo
+      - config-server
+      - eureka-server
+
+  booking-service:
+    build: ./booking-service
+    container_name: booking-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - mongo
+      - rabbitmq
+      - flight-service
+      - auth-service
+      - config-server
+      - eureka-server
+
+  notification-service:
+    build: ./notification-service
+    container_name: notification-service
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - rabbitmq
+      - config-server
+      - eureka-server
+
+volumes:
+  mongo_data:
