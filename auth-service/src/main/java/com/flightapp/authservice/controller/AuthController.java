@@ -11,8 +11,11 @@ import com.flightapp.authservice.repository.UserRepository;
 import com.flightapp.authservice.security.JwtUtils;
 import com.flightapp.authservice.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,30 +33,36 @@ public class AuthController {
     private final JwtUtils jwtUtils;
 
     @PostMapping("/signup")
-    public String register(@RequestBody SignupRequest req) {
+    public ResponseEntity<?> register(@RequestBody SignupRequest req) {
 
-        if (userRepo.existsByUsername(req.getUsername()))
-            return "Username already exists";
+        if(userRepo.existsByUsername(req.getUsername())){
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message","Username already exists"));
+        }
 
-        if (userRepo.existsByEmail(req.getEmail()))
-            return "Email already exists";
+        if(userRepo.existsByEmail(req.getEmail())){
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message","Email already exists"));
+        }
 
-        User user = new User();
+        User user=new User();
         user.setUsername(req.getUsername());
         user.setEmail(req.getEmail());
         user.setPassword(encoder.encode(req.getPassword()));
 
-        Set<Role> roles = new HashSet<>();
+        Set<Role> roles=new HashSet<>();
 
-        if (req.getRole() == null) {
-            Role userRole = roleRepo.findByName(ERole.ROLE_USER)
+        if(req.getRole()==null){
+            Role userRole=roleRepo.findByName(ERole.ROLE_USER)
                     .orElseThrow();
             roles.add(userRole);
-        } else {
-            req.getRole().forEach(r -> {
-                if (r.equalsIgnoreCase("admin")) {
+        }else{
+            req.getRole().forEach(r->{
+                if(r.equalsIgnoreCase("admin")){
                     roles.add(roleRepo.findByName(ERole.ROLE_ADMIN).orElseThrow());
-                } else {
+                }else{
                     roles.add(roleRepo.findByName(ERole.ROLE_USER).orElseThrow());
                 }
             });
@@ -62,30 +71,46 @@ public class AuthController {
         user.setRoles(roles);
         userRepo.save(user);
 
-        return "User registered successfully!";
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(Map.of("message","User registered successfully"));
     }
 
     @PostMapping("/signin")
-    public JwtResponse login(@RequestBody LoginRequest req) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest req) {
 
-        var auth = authManager.authenticate(
-                new UsernamePasswordAuthenticationToken(req.getUsername(), req.getPassword())
-        );
+        try{
+            var auth=authManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            req.getUsername(),
+                            req.getPassword()
+                    )
+            );
 
-        UserDetailsImpl user = (UserDetailsImpl) auth.getPrincipal();
+            UserDetailsImpl user=(UserDetailsImpl)auth.getPrincipal();
 
-        String token = jwtUtils.generateJwtToken(user);
+            String token=jwtUtils.generateJwtToken(user);
 
-        List<String> roles = user.getAuthorities()
-                .stream().map(a -> a.getAuthority()).toList();
+            List<String> roles=user.getAuthorities()
+                    .stream()
+                    .map(a->a.getAuthority())
+                    .toList();
 
-        return new JwtResponse(
-                token,
-                "Bearer",
-                user.getId(),
-                user.getUsername(),
-                user.getEmail(),
-                roles
-        );
+            return ResponseEntity.ok(
+                    new JwtResponse(
+                            token,
+                            "Bearer",
+                            user.getId(),
+                            user.getUsername(),
+                            user.getEmail(),
+                            roles
+                    )
+            );
+
+        }catch(AuthenticationException e){
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message","Invalid username or password"));
+        }
     }
 }
