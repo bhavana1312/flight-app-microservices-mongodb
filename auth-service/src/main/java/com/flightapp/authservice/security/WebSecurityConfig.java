@@ -38,8 +38,7 @@ public class WebSecurityConfig {
 
 		http.csrf(csrf -> csrf.disable())
 				.authorizeHttpRequests(
-						auth -> auth.requestMatchers("/auth/signin", "/auth/signup", "/auth/change-password")
-								.permitAll().anyRequest().authenticated())
+						auth -> auth.requestMatchers("/auth/**").permitAll().anyRequest().authenticated())
 				.httpBasic(Customizer.withDefaults());
 
 		return http.build();
