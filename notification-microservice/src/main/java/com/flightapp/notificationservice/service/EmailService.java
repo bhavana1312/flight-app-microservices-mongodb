@@ -16,9 +16,9 @@ public class EmailService {
 
 		SimpleMailMessage email = new SimpleMailMessage();
 		email.setTo(message.getEmail());
-		email.setSubject("Flight Ticket Booking Confirmation - PNR " + message.getPnr());
+		email.setSubject("Flight Ticket Booking Update - PNR " + message.getPnr());
 
-		email.setText("Hello " + message.getUserName() + ",\n\n" + "Your flight ticket has been booked successfully.\n"
+		email.setText("Hello " + message.getUserName() + ",\n\n" + "Your flight ticket update is here.\n"
 				+ "PNR Number: " + message.getPnr() + "\n" + "Status: " + message.getStatus() + "\n" + "Seats: "
 				+ message.getSeats() + "\n\n" + "Thank you for choosing FlightApp ");
 

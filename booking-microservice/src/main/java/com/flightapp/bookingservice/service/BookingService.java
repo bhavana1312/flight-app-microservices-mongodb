@@ -129,7 +129,7 @@ public class BookingService {
 
 		notificationProducer.sendNotification(
 				NotificationMessage.builder().pnr(pnr).email(booking.getUserEmail()).userName(booking.getUserName())
-						.flightId(booking.getFlightId()).seats(booking.getSelectedSeats()).status("CANCELLED").build());
+						.flightId(booking.getFlightId()).status("CANCELLED").seats(booking.getSelectedSeats()).build());
 
 		return "Ticket cancelled successfully";
 	}
